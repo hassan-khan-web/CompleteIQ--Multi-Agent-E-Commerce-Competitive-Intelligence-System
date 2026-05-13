@@ -74,3 +74,8 @@ datasets/
 *.tmp
 *.bak
 *.swp
+
+docs/IMPLEMENTATION_PLAN_WEEKS_3_TO_8.md
+docs/WEEK_BY_WEEK_SUMMARY.md
+chroma_db/
+__pycache__/
