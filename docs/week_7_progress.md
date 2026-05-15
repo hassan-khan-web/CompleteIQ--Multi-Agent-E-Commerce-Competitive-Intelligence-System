@@ -427,3 +427,18 @@ success, errors = system.initialize()
 ---
 
 **Ready for Week 8 Deployment** 🚀
+
+---
+
+## Canonical Runtime Path
+
+The canonical runtime path for this repository is:
+
+1. `config.py`
+2. `system_integration.py`
+3. `product_catalog_processor.py`
+4. `semantic_search_engine.py`
+5. `agents/beacon.py`, `agents/nexus.py`, `agents/verse.py`
+6. `orchestrators/multi_agent_orchestrator.py`
+
+`orchestrators/agent_orchestrator.py` and `orchestrators/system_integrator.py` are compatibility wrappers aligned to `system_integration.py`.

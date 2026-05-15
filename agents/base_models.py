@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-
 class PriceAnalysis(BaseModel):
     product_id: str
     product_name: str
@@ -11,7 +10,6 @@ class PriceAnalysis(BaseModel):
     recommendation: str
     confidence_score: float
     reasoning: str
-
 
 class CatalogAnalysis(BaseModel):
     company: str
@@ -23,7 +21,6 @@ class CatalogAnalysis(BaseModel):
     market_position: str
     confidence_score: float
     reasoning: str
-
 
 class MarketingContent(BaseModel):
     product_id: str

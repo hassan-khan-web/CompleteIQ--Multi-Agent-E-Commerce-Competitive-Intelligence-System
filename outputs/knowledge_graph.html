@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #1a1a2e;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#4FC3F7", "font": {"color": "white"}, "id": "X1-HP-001", "label": "Headphones X1", "shape": "dot", "size": 20, "title": "\u003cb\u003eHeadphones X1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Wireless Headphones\u003cbr\u003ePrice: $89.99\u003cbr\u003eFeatures: bluetooth 5.0, noise cancelling, 20h battery, foldable"}, {"color": "#FFB74D", "font": {"color": "white"}, "id": "company:Company X", "label": "Company X", "shape": "star", "size": 40, "title": "\u003cb\u003eCompany X\u003c/b\u003e\u003cbr\u003eType: company"}, {"color": "#CE93D8", "font": {"color": "white"}, "id": "category:Wireless Headphones", "label": "Wireless Headphones", "shape": "triangle", "size": 30, "title": "\u003cb\u003eWireless Headphones\u003c/b\u003e\u003cbr\u003eType: category"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:bluetooth 5.0", "label": "bluetooth 5.0", "shape": "diamond", "size": 12, "title": "\u003cb\u003ebluetooth 5.0\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:noise cancelling", "label": "noise cancelling", "shape": "diamond", "size": 12, "title": "\u003cb\u003enoise cancelling\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:20h battery", "label": "20h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e20h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:foldable", "label": "foldable", "shape": "diamond", "size": 12, "title": "\u003cb\u003efoldable\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X2-HP-002", "label": "Headphones X2 Pro", "shape": "dot", "size": 20, "title": "\u003cb\u003eHeadphones X2 Pro\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Wireless Headphones\u003cbr\u003ePrice: $149.99\u003cbr\u003eFeatures: bluetooth 5.2, advanced noise cancelling, 30h battery, foldable, usb type-c, multipoint"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:bluetooth 5.2", "label": "bluetooth 5.2", "shape": "diamond", "size": 12, "title": "\u003cb\u003ebluetooth 5.2\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:advanced noise cancelling", "label": "advanced noise cancelling", "shape": "diamond", "size": 12, "title": "\u003cb\u003eadvanced noise cancelling\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:30h battery", "label": "30h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e30h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:usb type-c", "label": "usb type-c", "shape": "diamond", "size": 12, "title": "\u003cb\u003eusb type-c\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:multipoint", "label": "multipoint", "shape": "diamond", "size": 12, "title": "\u003cb\u003emultipoint\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X1-SW-001", "label": "Watch X1", "shape": "dot", "size": 20, "title": "\u003cb\u003eWatch X1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Smart Watches\u003cbr\u003ePrice: $169.99\u003cbr\u003eFeatures: heart rate, gps, 5 day battery, water resistant, sleep tracking"}, {"color": "#CE93D8", "font": {"color": "white"}, "id": "category:Smart Watches", "label": "Smart Watches", "shape": "triangle", "size": 30, "title": "\u003cb\u003eSmart Watches\u003c/b\u003e\u003cbr\u003eType: category"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:heart rate", "label": "heart rate", "shape": "diamond", "size": 12, "title": "\u003cb\u003eheart rate\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:gps", "label": "gps", "shape": "diamond", "size": 12, "title": "\u003cb\u003egps\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:5 day battery", "label": "5 day battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e5 day battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:water resistant", "label": "water resistant", "shape": "diamond", "size": 12, "title": "\u003cb\u003ewater resistant\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:sleep tracking", "label": "sleep tracking", "shape": "diamond", "size": 12, "title": "\u003cb\u003esleep tracking\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X2-SW-002", "label": "Watch X2 Ultra", "shape": "dot", "size": 20, "title": "\u003cb\u003eWatch X2 Ultra\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Smart Watches\u003cbr\u003ePrice: $349.99\u003cbr\u003eFeatures: heart rate, gps, electrocardiogram, 10 day battery, titanium, dive mode"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:electrocardiogram", "label": "electrocardiogram", "shape": "diamond", "size": 12, "title": "\u003cb\u003eelectrocardiogram\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:10 day battery", "label": "10 day battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e10 day battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:titanium", "label": "titanium", "shape": "diamond", "size": 12, "title": "\u003cb\u003etitanium\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:dive mode", "label": "dive mode", "shape": "diamond", "size": 12, "title": "\u003cb\u003edive mode\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X1-PS-001", "label": "Speaker X1", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker X1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $63.99\u003cbr\u003eFeatures: bluetooth 5.0, waterproof, 12h battery, portable"}, {"color": "#CE93D8", "font": {"color": "white"}, "id": "category:Portable Speakers", "label": "Portable Speakers", "shape": "triangle", "size": 30, "title": "\u003cb\u003ePortable Speakers\u003c/b\u003e\u003cbr\u003eType: category"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:waterproof", "label": "waterproof", "shape": "diamond", "size": 12, "title": "\u003cb\u003ewaterproof\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:12h battery", "label": "12h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e12h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:portable", "label": "portable", "shape": "diamond", "size": 12, "title": "\u003cb\u003eportable\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X2-PS-002", "label": "Speaker X2 Max", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker X2 Max\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $129.99\u003cbr\u003eFeatures: bluetooth 5.1, waterproof, 24h battery, portable, 360 audio"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:bluetooth 5.1", "label": "bluetooth 5.1", "shape": "diamond", "size": 12, "title": "\u003cb\u003ebluetooth 5.1\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:24h battery", "label": "24h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e24h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:360 audio", "label": "360 audio", "shape": "diamond", "size": 12, "title": "\u003cb\u003e360 audio\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z1-HP-001", "label": "Headphones Z1", "shape": "dot", "size": 20, "title": "\u003cb\u003eHeadphones Z1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Wireless Headphones\u003cbr\u003ePrice: $99.75\u003cbr\u003eFeatures: bluetooth 5.2, noise cancelling, 25h battery, quick charge, foldable"}, {"color": "#FFB74D", "font": {"color": "white"}, "id": "company:Company Y", "label": "Company Y", "shape": "star", "size": 40, "title": "\u003cb\u003eCompany Y\u003c/b\u003e\u003cbr\u003eType: company"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:25h battery", "label": "25h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e25h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:quick charge", "label": "quick charge", "shape": "diamond", "size": 12, "title": "\u003cb\u003equick charge\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z2-HP-002", "label": "Headphones Z2", "shape": "dot", "size": 20, "title": "\u003cb\u003eHeadphones Z2\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Wireless Headphones\u003cbr\u003ePrice: $115.00\u003cbr\u003eFeatures: bluetooth 5.2, advanced noise cancelling, 30h battery, waterproof"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z1-SW-001", "label": "Watch Z1", "shape": "dot", "size": 20, "title": "\u003cb\u003eWatch Z1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Smart Watches\u003cbr\u003ePrice: $151.99\u003cbr\u003eFeatures: heart rate, gps, 7 day battery, water resistant, sleep tracking, blood oxygen"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:7 day battery", "label": "7 day battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e7 day battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:blood oxygen", "label": "blood oxygen", "shape": "diamond", "size": 12, "title": "\u003cb\u003eblood oxygen\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z2-SW-002", "label": "Watch Z2 Sport", "shape": "dot", "size": 20, "title": "\u003cb\u003eWatch Z2 Sport\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Smart Watches\u003cbr\u003ePrice: $251.99\u003cbr\u003eFeatures: heart rate, gps, 5 day battery, 100+ workouts, voice assistant"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:100+ workouts", "label": "100+ workouts", "shape": "diamond", "size": 12, "title": "\u003cb\u003e100+ workouts\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:voice assistant", "label": "voice assistant", "shape": "diamond", "size": 12, "title": "\u003cb\u003evoice assistant\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z1-PS-001", "label": "Speaker Z1", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker Z1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $59.49\u003cbr\u003eFeatures: bluetooth 5.0, waterproof, 15h battery, portable"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:15h battery", "label": "15h battery", "shape": "diamond", "size": 12, "title": "\u003cb\u003e15h battery\u003c/b\u003e\u003cbr\u003eType: feature"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z2-PS-002", "label": "Speaker Z2 Pro", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker Z2 Pro\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $119.99\u003cbr\u003eFeatures: bluetooth 5.1, waterproof, 20h battery, portable, bass boost"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:bass boost", "label": "bass boost", "shape": "diamond", "size": 12, "title": "\u003cb\u003ebass boost\u003c/b\u003e\u003cbr\u003eType: feature"}]);
+                  edges = new vis.DataSet([{"color": "#FFA726", "dashes": false, "from": "X1-HP-001", "title": "Manufactured By", "to": "company:Company X", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "X1-HP-001", "title": "In Category", "to": "category:Wireless Headphones", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-HP-001", "title": "Has Feature", "to": "feature:bluetooth 5.0", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-HP-001", "title": "Has Feature", "to": "feature:noise cancelling", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-HP-001", "title": "Has Feature", "to": "feature:20h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-HP-001", "title": "Has Feature", "to": "feature:foldable", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X1-HP-001", "title": "Competes With (similarity: 0.29)", "to": "Z1-HP-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X1-HP-001", "title": "Competes With", "to": "Z2-HP-002", "width": 3}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X2-HP-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X1-SW-001", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X2-SW-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X1-PS-001", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X2-PS-002", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Wireless Headphones", "title": "In Category", "to": "X2-HP-002", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Wireless Headphones", "title": "In Category", "to": "Z1-HP-001", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Wireless Headphones", "title": "In Category", "to": "Z2-HP-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:bluetooth 5.0", "title": "Has Feature", "to": "X1-PS-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:bluetooth 5.0", "title": "Has Feature", "to": "Z1-PS-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:noise cancelling", "title": "Has Feature", "to": "Z1-HP-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:20h battery", "title": "Has Feature", "to": "Z2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:foldable", "title": "Has Feature", "to": "X2-HP-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:foldable", "title": "Has Feature", "to": "Z1-HP-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-HP-002", "title": "Has Feature", "to": "feature:bluetooth 5.2", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-HP-002", "title": "Has Feature", "to": "feature:advanced noise cancelling", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-HP-002", "title": "Has Feature", "to": "feature:30h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-HP-002", "title": "Has Feature", "to": "feature:usb type-c", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-HP-002", "title": "Has Feature", "to": "feature:multipoint", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X2-HP-002", "title": "Competes With (similarity: 0.22)", "to": "Z1-HP-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X2-HP-002", "title": "Competes With (similarity: 0.43)", "to": "Z2-HP-002", "width": 3}, {"color": "#66BB6A", "dashes": false, "from": "feature:bluetooth 5.2", "title": "Has Feature", "to": "Z1-HP-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:bluetooth 5.2", "title": "Has Feature", "to": "Z2-HP-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:advanced noise cancelling", "title": "Has Feature", "to": "Z2-HP-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:30h battery", "title": "Has Feature", "to": "Z2-HP-002", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "X1-SW-001", "title": "In Category", "to": "category:Smart Watches", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-SW-001", "title": "Has Feature", "to": "feature:heart rate", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-SW-001", "title": "Has Feature", "to": "feature:gps", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-SW-001", "title": "Has Feature", "to": "feature:5 day battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-SW-001", "title": "Has Feature", "to": "feature:water resistant", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-SW-001", "title": "Has Feature", "to": "feature:sleep tracking", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X1-SW-001", "title": "Competes With (similarity: 0.57)", "to": "Z1-SW-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X1-SW-001", "title": "Competes With (similarity: 0.43)", "to": "Z2-SW-002", "width": 3}, {"color": "#AB47BC", "dashes": false, "from": "category:Smart Watches", "title": "In Category", "to": "X2-SW-002", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Smart Watches", "title": "In Category", "to": "Z1-SW-001", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Smart Watches", "title": "In Category", "to": "Z2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:heart rate", "title": "Has Feature", "to": "X2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:heart rate", "title": "Has Feature", "to": "Z1-SW-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:heart rate", "title": "Has Feature", "to": "Z2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:gps", "title": "Has Feature", "to": "X2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:gps", "title": "Has Feature", "to": "Z1-SW-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:gps", "title": "Has Feature", "to": "Z2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:5 day battery", "title": "Has Feature", "to": "Z2-SW-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:water resistant", "title": "Has Feature", "to": "Z1-SW-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:sleep tracking", "title": "Has Feature", "to": "Z1-SW-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-SW-002", "title": "Has Feature", "to": "feature:electrocardiogram", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-SW-002", "title": "Has Feature", "to": "feature:10 day battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-SW-002", "title": "Has Feature", "to": "feature:titanium", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-SW-002", "title": "Has Feature", "to": "feature:dive mode", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X2-SW-002", "title": "Competes With (similarity: 0.20)", "to": "Z1-SW-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X2-SW-002", "title": "Competes With (similarity: 0.22)", "to": "Z2-SW-002", "width": 3}, {"color": "#AB47BC", "dashes": false, "from": "X1-PS-001", "title": "In Category", "to": "category:Portable Speakers", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-PS-001", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-PS-001", "title": "Has Feature", "to": "feature:12h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-PS-001", "title": "Has Feature", "to": "feature:portable", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X1-PS-001", "title": "Competes With (similarity: 0.60)", "to": "Z1-PS-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X1-PS-001", "title": "Competes With (similarity: 0.29)", "to": "Z2-PS-002", "width": 3}, {"color": "#AB47BC", "dashes": false, "from": "category:Portable Speakers", "title": "In Category", "to": "X2-PS-002", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Portable Speakers", "title": "In Category", "to": "Z1-PS-001", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Portable Speakers", "title": "In Category", "to": "Z2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:waterproof", "title": "Has Feature", "to": "X2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:waterproof", "title": "Has Feature", "to": "Z2-HP-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:waterproof", "title": "Has Feature", "to": "Z1-PS-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:waterproof", "title": "Has Feature", "to": "Z2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:portable", "title": "Has Feature", "to": "X2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:portable", "title": "Has Feature", "to": "Z1-PS-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "feature:portable", "title": "Has Feature", "to": "Z2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-PS-002", "title": "Has Feature", "to": "feature:bluetooth 5.1", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-PS-002", "title": "Has Feature", "to": "feature:24h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-PS-002", "title": "Has Feature", "to": "feature:360 audio", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "X2-PS-002", "title": "Competes With (similarity: 0.29)", "to": "Z1-PS-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "X2-PS-002", "title": "Competes With (similarity: 0.43)", "to": "Z2-PS-002", "width": 3}, {"color": "#66BB6A", "dashes": false, "from": "feature:bluetooth 5.1", "title": "Has Feature", "to": "Z2-PS-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "Z1-HP-001", "title": "Manufactured By", "to": "company:Company Y", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-HP-001", "title": "Has Feature", "to": "feature:25h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-HP-001", "title": "Has Feature", "to": "feature:quick charge", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company Y", "title": "Manufactured By", "to": "Z2-HP-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company Y", "title": "Manufactured By", "to": "Z1-SW-001", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company Y", "title": "Manufactured By", "to": "Z2-SW-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company Y", "title": "Manufactured By", "to": "Z1-PS-001", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company Y", "title": "Manufactured By", "to": "Z2-PS-002", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-SW-001", "title": "Has Feature", "to": "feature:7 day battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-SW-001", "title": "Has Feature", "to": "feature:blood oxygen", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z2-SW-002", "title": "Has Feature", "to": "feature:100+ workouts", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z2-SW-002", "title": "Has Feature", "to": "feature:voice assistant", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-PS-001", "title": "Has Feature", "to": "feature:15h battery", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z2-PS-002", "title": "Has Feature", "to": "feature:bass boost", "width": 1.5}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -8000,
+            "springConstant": 0.05,
+            "springLength": 150
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
