@@ -34,7 +34,7 @@ def create_mock_embedding(text: str, seed: int=0) -> List[float]:
     hash_val = int(hashlib.md5((text + str(seed)).encode()).hexdigest(), 16)
     embedding = []
     for i in range(1536):
-        val = ((hash_val >> (i % 32)) & 255) / 128.0 - 1.0
+        val = (hash_val >> i % 32 & 255) / 128.0 - 1.0
         embedding.append(val)
     return embedding
 

@@ -25,7 +25,6 @@
           crossorigin="anonymous"
         ></script>
 
-
         <center>
           <h1></h1>
         </center>
@@ -38,16 +37,9 @@
                  border: 1px solid lightgray;
                  position: relative;
                  float: left;
-             }
-
-             
-
-             
-
-             
+             } 
         </style>
     </head>
-
 
     <body>
         <div class="card" style="width: 100%">
@@ -56,12 +48,8 @@
             <div id="mynetwork" class="card-body"></div>
         </div>
 
-        
-        
-
         <script type="text/javascript">
 
-              // initialize global variables.
               var edges;
               var nodes;
               var allNodes;
@@ -77,17 +65,11 @@
                   value : []
               };
 
-              
-
-              
-
-              // This method is responsible for drawing the graph, returns the drawn network
               function drawGraph() {
                   var container = document.getElementById('mynetwork');
 
                   
 
-                  // parsing and collecting nodes and edges from the python
                   nodes = new vis.DataSet([{"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z1-PS-001", "label": "Speaker Z1", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker Z1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $59.49\u003cbr\u003eFeatures: bluetooth 5.0, waterproof, 15h battery, portable"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z2-PS-002", "label": "Speaker Z2 Pro", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker Z2 Pro\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $119.99\u003cbr\u003eFeatures: bluetooth 5.1, waterproof, 20h battery, portable, bass boost"}, {"color": "#CE93D8", "font": {"color": "white"}, "id": "category:Wireless Headphones", "label": "Wireless Headphones", "shape": "triangle", "size": 30, "title": "\u003cb\u003eWireless Headphones\u003c/b\u003e\u003cbr\u003eType: category"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "Z2-HP-002", "label": "Headphones Z2", "shape": "dot", "size": 20, "title": "\u003cb\u003eHeadphones Z2\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company Y\u003cbr\u003eCategory: Wireless Headphones\u003cbr\u003ePrice: $115.00\u003cbr\u003eFeatures: bluetooth 5.2, advanced noise cancelling, 30h battery, waterproof"}, {"color": "#CE93D8", "font": {"color": "white"}, "id": "category:Portable Speakers", "label": "Portable Speakers", "shape": "triangle", "size": 30, "title": "\u003cb\u003ePortable Speakers\u003c/b\u003e\u003cbr\u003eType: category"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X2-PS-002", "label": "Speaker X2 Max", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker X2 Max\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $129.99\u003cbr\u003eFeatures: bluetooth 5.1, waterproof, 24h battery, portable, 360 audio"}, {"color": "#FFB74D", "font": {"color": "white"}, "id": "company:Company Y", "label": "Company Y", "shape": "star", "size": 40, "title": "\u003cb\u003eCompany Y\u003c/b\u003e\u003cbr\u003eType: company"}, {"color": "#FFB74D", "font": {"color": "white"}, "id": "company:Company X", "label": "Company X", "shape": "star", "size": 40, "title": "\u003cb\u003eCompany X\u003c/b\u003e\u003cbr\u003eType: company"}, {"color": "#4FC3F7", "font": {"color": "white"}, "id": "X1-PS-001", "label": "Speaker X1", "shape": "dot", "size": 20, "title": "\u003cb\u003eSpeaker X1\u003c/b\u003e\u003cbr\u003eType: product\u003cbr\u003eCompany: Company X\u003cbr\u003eCategory: Portable Speakers\u003cbr\u003ePrice: $63.99\u003cbr\u003eFeatures: bluetooth 5.0, waterproof, 12h battery, portable"}, {"color": "#AED581", "font": {"color": "white"}, "id": "feature:waterproof", "label": "waterproof", "shape": "diamond", "size": 12, "title": "\u003cb\u003ewaterproof\u003c/b\u003e\u003cbr\u003eType: feature"}]);
                   edges = new vis.DataSet([{"color": "#FFA726", "dashes": false, "from": "Z1-PS-001", "title": "Manufactured By", "to": "company:Company Y", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "Z1-PS-001", "title": "In Category", "to": "category:Portable Speakers", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z1-PS-001", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "Z1-PS-001", "title": "Competes With (similarity: 0.60)", "to": "X1-PS-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "Z1-PS-001", "title": "Competes With (similarity: 0.29)", "to": "X2-PS-002", "width": 3}, {"color": "#FFA726", "dashes": false, "from": "Z2-PS-002", "title": "Manufactured By", "to": "company:Company Y", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "Z2-PS-002", "title": "In Category", "to": "category:Portable Speakers", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z2-PS-002", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}, {"color": "#EF5350", "dashes": true, "from": "Z2-PS-002", "title": "Competes With (similarity: 0.29)", "to": "X1-PS-001", "width": 3}, {"color": "#EF5350", "dashes": true, "from": "Z2-PS-002", "title": "Competes With (similarity: 0.43)", "to": "X2-PS-002", "width": 3}, {"color": "#AB47BC", "dashes": false, "from": "category:Wireless Headphones", "title": "In Category", "to": "Z2-HP-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "Z2-HP-002", "title": "Manufactured By", "to": "company:Company Y", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "Z2-HP-002", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Portable Speakers", "title": "In Category", "to": "X1-PS-001", "width": 1.5}, {"color": "#AB47BC", "dashes": false, "from": "category:Portable Speakers", "title": "In Category", "to": "X2-PS-002", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "X2-PS-002", "title": "Manufactured By", "to": "company:Company X", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X2-PS-002", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}, {"color": "#FFA726", "dashes": false, "from": "company:Company X", "title": "Manufactured By", "to": "X1-PS-001", "width": 1.5}, {"color": "#66BB6A", "dashes": false, "from": "X1-PS-001", "title": "Has Feature", "to": "feature:waterproof", "width": 1.5}]);
 
@@ -97,7 +79,6 @@
                     nodeColors[nodeId] = allNodes[nodeId].color;
                   }
                   allEdges = edges.get({ returnType: "Object" });
-                  // adding nodes and edges to the graph
                   data = {nodes: nodes, edges: edges};
 
                   var options = {
@@ -137,23 +118,7 @@
         }
     }
 };
-
-                  
-
-
-                  
-
                   network = new vis.Network(container, data, options);
-
-                  
-
-                  
-
-                  
-
-
-                  
-
                   return network;
 
               }

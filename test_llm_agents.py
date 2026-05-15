@@ -8,25 +8,30 @@ import semantic_search_engine
 import orchestrators.multi_agent_orchestrator as mao
 
 class _NoOpSpan:
+
     def end(self, *args, **kwargs):
         return None
 
 class _NoOpTrace:
     input = None
     output = None
+
     def span(self, *args, **kwargs):
         return _NoOpSpan()
+
     def update(self, *args, **kwargs):
         return None
+
     def end(self, *args, **kwargs):
         return None
 
 class _NoOpLangfuse:
+
     def trace(self, *args, **kwargs):
         return _NoOpTrace()
+
     def flush(self):
         return None
-
 _noop = _NoOpLangfuse()
 system_integration.Langfuse = lambda **kwargs: _noop
 product_catalog_processor.langfuse = _noop
