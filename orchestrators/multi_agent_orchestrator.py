@@ -8,9 +8,7 @@ from dotenv import load_dotenv
 from langfuse import Langfuse
 
 from semantic_search_engine import SemanticSearchEngine, get_normalized_products
-from .beacon import Beacon
-from .nexus import Nexus
-from .verse import Verse
+from agents import Beacon, Nexus, Verse
 
 load_dotenv()
 
