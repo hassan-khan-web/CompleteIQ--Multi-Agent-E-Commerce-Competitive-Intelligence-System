@@ -16,8 +16,10 @@ class Beacon:
         self.chain = create_pricing_chain(openrouter_api_key, model)
 
     def analyze_product_pricing(self, product: Dict[str, Any]) -> PriceAnalysis:
-        trace = self.langfuse.trace(name='beacon_analyze_product', session_id=self.session_id)
-        trace.input = {'product_id': product.get('sku'), 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='beacon_analyze_product', session_id=self.session_id)
+            trace.input = {'product_id': product.get('sku'), 'model': self.model}
         try:
             product_name = product.get('product_name', '')
             current_price = product.get('effective_price', 0)
@@ -40,11 +42,13 @@ class Beacon:
             confidence = llm_output.get('confidence_score', 0.5)
             reasoning = llm_output.get('reasoning', 'LLM analysis')
             analysis = PriceAnalysis(product_id=product.get('sku', ''), product_name=product_name, current_price=current_price, competitor_price=competitor_price, price_difference=price_difference, recommendation=recommendation, confidence_score=confidence, reasoning=reasoning)
-            trace.output = {'recommendation': recommendation, 'confidence': confidence, 'competitor_price': competitor_price, 'model': self.model}
+            if trace:
+                trace.output = {'recommendation': recommendation, 'confidence': confidence, 'competitor_price': competitor_price, 'model': self.model}
             return analysis
         except Exception as e:
             print(f'[WARN] Beacon LLM failed: {str(e)}, using fallback logic')
-            trace.output = {'error': str(e), 'fallback': True}
+            if trace:
+                trace.output = {'error': str(e), 'fallback': True}
             return self._fallback_pricing_analysis(product)
 
     def _fallback_pricing_analysis(self, product: Dict[str, Any]) -> PriceAnalysis:
@@ -75,11 +79,14 @@ class Beacon:
         return PriceAnalysis(product_id=product.get('sku', ''), product_name=product_name, current_price=current_price, competitor_price=competitor_price, price_difference=price_difference, recommendation=recommendation, confidence_score=confidence, reasoning=reasoning)
 
     def analyze_catalog(self, products: List[Dict[str, Any]]) -> List[PriceAnalysis]:
-        trace = self.langfuse.trace(name='beacon_analyze_catalog', session_id=self.session_id)
-        trace.input = {'product_count': len(products), 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='beacon_analyze_catalog', session_id=self.session_id)
+            trace.input = {'product_count': len(products), 'model': self.model}
         analyses = []
         for product in products:
             analysis = self.analyze_product_pricing(product)
             analyses.append(analysis)
-        trace.output = {'analyzed_count': len(analyses), 'reduce_price_count': sum((1 for a in analyses if a.recommendation == 'REDUCE_PRICE')), 'increase_price_count': sum((1 for a in analyses if a.recommendation == 'INCREASE_PRICE')), 'model': self.model}
+        if trace:
+            trace.output = {'analyzed_count': len(analyses), 'reduce_price_count': sum((1 for a in analyses if a.recommendation == 'REDUCE_PRICE')), 'increase_price_count': sum((1 for a in analyses if a.recommendation == 'INCREASE_PRICE')), 'model': self.model}
         return analyses

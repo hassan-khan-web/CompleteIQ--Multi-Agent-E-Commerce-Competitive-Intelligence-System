@@ -15,8 +15,10 @@ class Verse:
         self.chain = create_content_chain(openrouter_api_key, model)
 
     def generate_product_content(self, product: Dict[str, Any]) -> MarketingContent:
-        trace = self.langfuse.trace(name='verse_generate_product', session_id=self.session_id)
-        trace.input = {'product_id': product.get('sku'), 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='verse_generate_product', session_id=self.session_id)
+            trace.input = {'product_id': product.get('sku'), 'model': self.model}
         try:
             product_id = product.get('sku', '')
             product_name = product.get('product_name', '')
@@ -54,11 +56,13 @@ class Verse:
             call_to_action = llm_output.get('call_to_action', 'Order Now')
             confidence = llm_output.get('confidence_score', 0.88)
             content = MarketingContent(product_id=product_id, product_name=product_name, category=category, headline=headline, description=description, key_selling_points=key_points, tone=tone, confidence_score=confidence, reasoning=f'LLM-generated content for {category} targeting {target_audience}')
-            trace.output = {'headline': headline, 'tone': tone, 'key_points_count': len(key_points), 'model': self.model}
+            if trace:
+                trace.output = {'headline': headline, 'tone': tone, 'key_points_count': len(key_points), 'model': self.model}
             return content
         except Exception as e:
             print(f'[WARN] Verse LLM failed: {str(e)}, using fallback logic')
-            trace.output = {'error': str(e), 'fallback': True}
+            if trace:
+                trace.output = {'error': str(e), 'fallback': True}
             return self._fallback_product_content(product)
 
     def _fallback_product_content(self, product: Dict[str, Any]) -> MarketingContent:
@@ -91,11 +95,14 @@ class Verse:
         return MarketingContent(product_id=product_id, product_name=product_name, category=category, headline=headline, description=description, key_selling_points=key_points, tone=tone, confidence_score=0.85, reasoning='Fallback template-based content')
 
     def generate_catalog_content(self, products: List[Dict[str, Any]]) -> List[MarketingContent]:
-        trace = self.langfuse.trace(name='verse_generate_catalog', session_id=self.session_id)
-        trace.input = {'product_count': len(products), 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='verse_generate_catalog', session_id=self.session_id)
+            trace.input = {'product_count': len(products), 'model': self.model}
         contents = []
         for product in products:
             content = self.generate_product_content(product)
             contents.append(content)
-        trace.output = {'generated_count': len(contents), 'model': self.model}
+        if trace:
+            trace.output = {'generated_count': len(contents), 'model': self.model}
         return contents

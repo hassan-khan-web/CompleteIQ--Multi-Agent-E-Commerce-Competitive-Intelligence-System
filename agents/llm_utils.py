@@ -30,13 +30,13 @@ class MarketingContentOutput(BaseModel):
     confidence_score: float = Field(description='Confidence 0-1')
 
 def create_llm_beacon(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.3, max_tokens=1000)
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.3, max_tokens=400, model_kwargs={"max_tokens": 400})
 
 def create_llm_nexus(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.5, max_tokens=1500)
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.5, max_tokens=400, model_kwargs={"max_tokens": 400})
 
 def create_llm_verse(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.7, max_tokens=1200)
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.7, max_tokens=400, model_kwargs={"max_tokens": 400})
 
 def get_beacon_prompt() -> PromptTemplate:
     return PromptTemplate.from_template('\nYou are a pricing analyst AI. Analyze the following product pricing data and recommend a pricing strategy.\n\nProduct Information:\n- Name: {product_name}\n- Current Price: ${current_price:.2f}\n- Category: {category}\n- Company: {company}\n- Features: {features}\n\nCompetitor Information:\n- Competitor Name: {competitor_name}\n- Competitor Price: ${competitor_price}\n- Price Difference: ${price_difference:.2f}\n\nBased on this data, provide a pricing recommendation. Return a JSON with:\n- recommendation: One of "REDUCE_PRICE", "INCREASE_PRICE", or "MAINTAIN_PRICE"\n- confidence_score: 0.0 to 1.0\n- reasoning: Explanation for the recommendation\n\nConsider:\n1. Price competitiveness\n2. Market positioning\n3. Value proposition\n4. Profit margins\n5. Market demand signals\n\nRespond ONLY with valid JSON.\n')

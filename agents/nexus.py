@@ -15,8 +15,10 @@ class Nexus:
         self.chain = create_market_chain(openrouter_api_key, model)
 
     def analyze_company_catalog(self, products: List[Dict[str, Any]], company: str) -> CatalogAnalysis:
-        trace = self.langfuse.trace(name='nexus_analyze_company', session_id=self.session_id)
-        trace.input = {'company': company, 'product_count': len(products), 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='nexus_analyze_company', session_id=self.session_id)
+            trace.input = {'company': company, 'product_count': len(products), 'model': self.model}
         try:
             company_products = [p for p in products if p.get('company') == company]
             if not company_products:
@@ -49,11 +51,13 @@ class Nexus:
             confidence = llm_output.get('confidence_score', 0.82)
             reasoning = llm_output.get('reasoning', 'LLM market analysis')
             analysis = CatalogAnalysis(company=company, total_products=len(company_products), categories=categories, avg_price=round(avg_price, 2), price_range={'min': min_price, 'max': max_price, 'avg': avg_price}, competitive_strength=competitive_strength, market_position=market_position, confidence_score=confidence, reasoning=reasoning)
-            trace.output = {'total_products': len(company_products), 'categories': len(categories), 'competitive_strength': competitive_strength, 'model': self.model}
+            if trace:
+                trace.output = {'total_products': len(company_products), 'categories': len(categories), 'competitive_strength': competitive_strength, 'model': self.model}
             return analysis
         except Exception as e:
             print(f'[WARN] Nexus LLM failed: {str(e)}, using fallback logic')
-            trace.output = {'error': str(e), 'fallback': True}
+            if trace:
+                trace.output = {'error': str(e), 'fallback': True}
             return self._fallback_catalog_analysis(products, company)
 
     def _fallback_catalog_analysis(self, products: List[Dict[str, Any]], company: str) -> CatalogAnalysis:
@@ -79,12 +83,16 @@ class Nexus:
         return CatalogAnalysis(company=company, total_products=len(company_products), categories=categories, avg_price=round(avg_price, 2), price_range={'min': min_price, 'max': max_price, 'avg': avg_price}, competitive_strength=competitive_strength, market_position=market_position, confidence_score=confidence, reasoning=reasoning)
 
     def compare_catalogs(self, products: List[Dict[str, Any]]) -> Dict[str, CatalogAnalysis]:
-        trace = self.langfuse.trace(name='nexus_compare_catalogs', session_id=self.session_id)
-        companies = list(set((p.get('company', '') for p in products if p.get('company'))))
-        trace.input = {'companies': companies, 'model': self.model}
+        trace = None
+        if self.langfuse:
+            trace = self.langfuse.trace(name='nexus_compare_catalogs', session_id=self.session_id)
+            companies = list(set((p.get('company', '') for p in products if p.get('company'))))
+            trace.input = {'companies': companies, 'model': self.model}
         comparisons = {}
+        companies = list(set((p.get('company', '') for p in products if p.get('company'))))
         for company in companies:
             analysis = self.analyze_company_catalog(products, company)
             comparisons[company] = analysis
-        trace.output = {'compared_companies': len(comparisons), 'model': self.model}
+        if trace:
+            trace.output = {'compared_companies': len(comparisons), 'model': self.model}
         return comparisons

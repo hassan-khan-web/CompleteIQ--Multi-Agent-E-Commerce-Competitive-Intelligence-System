@@ -1,4 +1,4 @@
-# 🌌 CompleteIQ — Multi-Agent Competitive Intelligence
+# 🌌 Omnilytics — Multi-Agent Competitive Intelligence
 
 CompleteIQ is a production-grade E-commerce Intelligence System that uses a team of AI agents to monitor competitors, analyze product features, and optimize market positioning in real-time.
 
