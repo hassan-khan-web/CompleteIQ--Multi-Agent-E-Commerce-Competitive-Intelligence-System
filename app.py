@@ -344,8 +344,8 @@ CSS = '\n/* ── Global ── */\n.gradio-container {\n    max-width: 1280px 
 
 def build_app() -> gr.Blocks:
     theme = gr.themes.Soft(primary_hue='indigo', secondary_hue='purple', neutral_hue='slate', font=gr.themes.GoogleFont('Inter'))
-    with gr.Blocks(theme=theme, css=CSS, title='CompleteIQ — Competitive Intelligence') as app:
-        gr.Markdown('# CompleteIQ', elem_id='app-title')
+    with gr.Blocks(theme=theme, css=CSS, title='Omnilytics — Competitive Intelligence') as app:
+        gr.Markdown('# Omnilytics', elem_id='app-title')
         gr.Markdown('Multi-Agent E-Commerce Competitive Intelligence System', elem_id='app-subtitle')
         with gr.Tabs():
             with gr.Tab('📊 Dashboard', id='dashboard'):

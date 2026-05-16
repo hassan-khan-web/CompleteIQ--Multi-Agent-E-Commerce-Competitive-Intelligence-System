@@ -1,6 +1,6 @@
-# 🛠️ CompleteIQ: Setup & Usage Guide
+# 🛠️ Omnilytics: Setup & Usage Guide
 
-CompleteIQ is a multi-agent competitive intelligence system designed for e-commerce. It automates the process of monitoring competitors, analyzing feature gaps, and generating marketing insights using AI agents.
+**Omnilytics** is a multi-agent competitive intelligence system designed for e-commerce. It automates the process of monitoring competitors, analyzing feature gaps, and generating marketing insights using AI agents.
 
 ## 📋 Prerequisites
 
@@ -12,8 +12,8 @@ CompleteIQ is a multi-agent competitive intelligence system designed for e-comme
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository-url>
-   cd CompleteIQ-E-commerce
+   git clone https://github.com/hassan-khan-web/Omnilytics--Multi-Agent-E-Commerce-Competitive-Intelligence-System.git
+   cd Omnilytics--Multi-Agent-E-Commerce-Competitive-Intelligence-System
    ```
 
 2. **Create a Virtual Environment**
