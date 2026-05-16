@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from langfuse import Langfuse
 from .base_models import CatalogAnalysis
-from .llm_utils import create_market_chain
+from .llm_utils import create_market_chain, _rate_limited_invoke
 
 class Nexus:
 
@@ -23,7 +23,8 @@ class Nexus:
             company_products = [p for p in products if p.get('company') == company]
             if not company_products:
                 analysis = CatalogAnalysis(company=company, total_products=0, categories=[], avg_price=0, price_range={'min': 0, 'max': 0}, competitive_strength='UNKNOWN', market_position='NO_DATA', confidence_score=0.0, reasoning='No products found')
-                trace.output = {'status': 'no_data'}
+                if trace:
+                    trace.output = {'status': 'no_data'}
                 return analysis
             categories = list(set((p.get('category', '') for p in company_products if p.get('category'))))
             prices = [p.get('effective_price', 0) for p in company_products if p.get('effective_price', 0) > 0]
@@ -44,7 +45,7 @@ class Nexus:
             top_features = sorted(feature_counts.items(), key=lambda x: x[1], reverse=True)[:5]
             top_features_str = ', '.join([f[0] for f in top_features])
             llm_input = {'company': company, 'total_products': len(company_products), 'categories': ', '.join(categories), 'min_price': min_price, 'max_price': max_price, 'avg_price': avg_price, 'competitor_name': competitor_name, 'competitor_products': len(competitor_products), 'competitor_avg_price': competitor_avg_price, 'top_features': top_features_str, 'market_trends': 'Increasing demand for feature-rich products with competitive pricing'}
-            llm_output = self.chain.invoke(llm_input)
+            llm_output = _rate_limited_invoke(self.chain, llm_input)
             competitive_strength = llm_output.get('competitive_strength', 'BALANCED')
             market_position = llm_output.get('market_position', 'BALANCED_MARKET_POSITION')
             key_insights = llm_output.get('key_insights', [])

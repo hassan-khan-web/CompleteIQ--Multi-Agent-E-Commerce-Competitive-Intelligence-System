@@ -118,15 +118,23 @@ def run_search(query: str, company: str, category: str, top_k: int):
     except Exception as exc:
         return f'**❌ Error**: {exc}'
 
-def run_analysis(progress=gr.Progress()):
+def run_analysis(selected_product="All Products", progress=gr.Progress()):
     try:
         system = _boot_system()
         progress(0.1, desc='Initialising agents…')
+
+        target_products = None
+        if selected_product and selected_product != "All Products":
+            sku = selected_product.split(' — ')[0].strip()
+            target_products = [p for p in system.normalized_products if p.get('sku') == sku]
+            if not target_products:
+                return f"⚠️ Product `{sku}` not found in catalog."
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            progress(0.3, desc='Running Beacon, Nexus, Verse in parallel…')
-            report = loop.run_until_complete(system.analyze_competitors())
+            progress(0.3, desc='Running Nexus → Beacon → Verse sequentially (rate-limited)…')
+            report = loop.run_until_complete(system.analyze_competitors(products=target_products))
         finally:
             loop.close()
         progress(0.9, desc='Formatting report…')
@@ -137,20 +145,65 @@ def run_analysis(progress=gr.Progress()):
         lines.append(f'- **Confidence**: {report.confidence_score:.0%}')
         lines.append(f'- **Execution Time**: {report.execution_time_ms}ms')
         lines.append(f'- **Recommendation**: {report.overall_recommendation}\n')
+
+        # ── Beacon: Pricing Recommendations ──
         ba = report.price_analysis
-        lines.append('### 💰 Beacon (Price Monitor)')
-        lines.append(f"- Status: **{ba.get('status', 'N/A')}**")
-        lines.append(f"- Execution: {ba.get('execution_time', 0):.1f}s")
+        lines.append('---')
+        lines.append('### 💰 Beacon — Pricing Recommendations')
+        lines.append(f"- **Status**: {ba.get('status', 'N/A')}  ·  **Execution**: {ba.get('execution_time', 0):.1f}s\n")
+        beacon_data = ba.get('data')
+        if beacon_data:
+            lines.append('| Product | Current Price | Competitor Price | Diff | Recommendation | Confidence | Reasoning |')
+            lines.append('|---------|:------------:|:---------------:|:----:|:--------------:|:----------:|-----------|')
+            for a in beacon_data:
+                comp_p = f'${a.competitor_price:.2f}' if a.competitor_price else '—'
+                diff = f'${a.price_difference:+.2f}' if a.price_difference else '—'
+                rec_icon = {'REDUCE_PRICE': '🔻 Reduce', 'INCREASE_PRICE': '🔺 Increase', 'MAINTAIN_PRICE': '⏸️ Maintain'}.get(a.recommendation, a.recommendation)
+                lines.append(f'| {a.product_name} | ${a.current_price:.2f} | {comp_p} | {diff} | {rec_icon} | {a.confidence_score:.0%} | {a.reasoning} |')
+        else:
+            lines.append('*No pricing data available.*')
+
+        # ── Nexus: Market Positioning ──
         fa = report.feature_analysis
-        lines.append('\n### 🔬 Nexus (Catalog Analyzer)')
-        lines.append(f"- Status: **{fa.get('status', 'N/A')}**")
-        lines.append(f"- Execution: {fa.get('execution_time', 0):.1f}s")
+        lines.append('\n---')
+        lines.append('### 🔬 Nexus — Market Positioning')
+        lines.append(f"- **Status**: {fa.get('status', 'N/A')}  ·  **Execution**: {fa.get('execution_time', 0):.1f}s\n")
+        nexus_data = fa.get('data')
+        if nexus_data:
+            for company_name, analysis in nexus_data.items():
+                strength = analysis.competitive_strength
+                strength_icon = {'PREMIUM': '👑', 'VALUE': '💎', 'BALANCED': '⚖️'}.get(strength, '📊')
+                lines.append(f'#### {strength_icon} {company_name}')
+                lines.append(f'- **Products**: {analysis.total_products}  ·  **Categories**: {", ".join(analysis.categories)}')
+                lines.append(f'- **Avg Price**: ${analysis.avg_price:.2f}  ·  **Range**: ${analysis.price_range.get("min", 0):.2f} – ${analysis.price_range.get("max", 0):.2f}')
+                lines.append(f'- **Positioning**: {strength_icon} **{strength}**  ·  **Market Position**: {analysis.market_position}')
+                lines.append(f'- **Confidence**: {analysis.confidence_score:.0%}')
+                lines.append(f'- **Analysis**: {analysis.reasoning}\n')
+        else:
+            lines.append('*No market positioning data available.*')
+
+        # ── Verse: Marketing Content ──
         mi = report.marketing_insights
-        lines.append('\n### ✍️ Verse (Marketing Content)')
-        lines.append(f"- Status: **{mi.get('status', 'N/A')}**")
-        lines.append(f"- Execution: {mi.get('execution_time', 0):.1f}s")
+        lines.append('---')
+        lines.append('### ✍️ Verse — Marketing Content')
+        lines.append(f"- **Status**: {mi.get('status', 'N/A')}  ·  **Execution**: {mi.get('execution_time', 0):.1f}s\n")
+        verse_data = mi.get('data')
+        if verse_data:
+            for content in verse_data:
+                tone_icon = {'casual_accessible': '😊', 'professional': '💼', 'premium_sophisticated': '✨'}.get(content.tone, '📝')
+                lines.append(f'#### {tone_icon} {content.product_name} ({content.category})')
+                lines.append(f'> **{content.headline}**\n')
+                lines.append(f'{content.description}\n')
+                lines.append(f'**Key Selling Points:**')
+                for point in content.key_selling_points:
+                    lines.append(f'- ✅ {point}')
+                lines.append(f'\n*Tone: {content.tone} · Confidence: {content.confidence_score:.0%}*\n')
+        else:
+            lines.append('*No marketing content available.*')
+
         if report.errors:
-            lines.append('\n### ⚠️ Errors')
+            lines.append('\n---')
+            lines.append('### ⚠️ Errors')
             for e in report.errors:
                 lines.append(f'- {e}')
         out_dir = Path('outputs')
@@ -311,10 +364,11 @@ def build_app() -> gr.Blocks:
                 search_out = gr.Markdown()
                 search_btn.click(fn=run_search, inputs=[search_query, search_company, search_category, search_k], outputs=search_out)
             with gr.Tab('⚔️ Competitive Analysis', id='analysis'):
-                gr.Markdown('### Run full multi-agent analysis\nThis executes **Beacon** (pricing), **Nexus** (market positioning), and **Verse** (marketing content) agents in parallel via OpenRouter.')
+                gr.Markdown('### Run multi-agent competitive analysis\nSelect an individual product to analyze (fast, uses 3 API calls) or analyze the entire catalog (uses 26 API calls).')
+                analysis_product = gr.Dropdown(choices=['All Products'] + get_product_choices(), value='All Products', label='Select Product to Analyze')
                 analysis_btn = gr.Button('🚀  Run Analysis', elem_classes=['primary-btn'])
                 analysis_out = gr.Markdown()
-                analysis_btn.click(fn=run_analysis, outputs=analysis_out)
+                analysis_btn.click(fn=run_analysis, inputs=analysis_product, outputs=analysis_out)
             with gr.Tab('🕸️ Knowledge Graph', id='kg'):
                 with gr.Tabs():
                     with gr.Tab('Competitors'):

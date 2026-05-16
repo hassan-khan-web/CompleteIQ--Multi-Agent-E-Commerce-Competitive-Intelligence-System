@@ -46,8 +46,18 @@ class CompetitiveReport:
 
     def save(self, output_path: str) -> None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        def custom_serializer(obj):
+            if hasattr(obj, 'model_dump'):
+                return obj.model_dump()
+            if hasattr(obj, 'dict'):
+                return obj.dict()
+            if hasattr(obj, '__dict__'):
+                return obj.__dict__
+            raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
         with open(output_path, 'w') as f:
-            json.dump(self.to_dict(), f, indent=2)
+            json.dump(self.to_dict(), f, indent=2, default=custom_serializer)
 
 class CompetitiveIntelligenceSystem:
 

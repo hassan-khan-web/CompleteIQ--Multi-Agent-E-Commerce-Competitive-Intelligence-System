@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -15,7 +15,7 @@ class AgentResult:
 
 class MultiAgentOrchestrator:
 
-    def __init__(self, timeout: int=30, max_retries: int=3):
+    def __init__(self, timeout: int=120, max_retries: int=2):
         self.timeout = timeout
         self.max_retries = max_retries
         self.session_id = str(uuid.uuid4())
@@ -66,18 +66,32 @@ class MultiAgentOrchestrator:
             return AgentResult('Verse', 'failed', error=label, retry_count=retry_count)
 
     async def run_async(self, products):
+        """Run agents sequentially to respect rate limits on free-tier APIs."""
         if not all([self.beacon, self.nexus, self.verse]):
             raise RuntimeError('Agents are not configured on orchestrator')
         self.execution_metrics['start_time'] = datetime.now().isoformat()
-        tasks = [self.execute_beacon(products), self.execute_nexus(products), self.execute_verse(products)]
-        results = await asyncio.gather(*tasks)
-        for result in results:
-            self.results[result.agent_name.lower()] = result
+
+        # Run sequentially: Nexus (2 calls) → Beacon (12 calls) → Verse (12 calls)
+        # This keeps total calls spread out via the global rate limiter
+        print('[INFO] Running Nexus (market positioning)...')
+        nexus_result = await self.execute_nexus(products)
+        self.results[nexus_result.agent_name.lower()] = nexus_result
+
+        print('[INFO] Running Beacon (pricing analysis)...')
+        beacon_result = await self.execute_beacon(products)
+        self.results[beacon_result.agent_name.lower()] = beacon_result
+
+        print('[INFO] Running Verse (marketing content)...')
+        verse_result = await self.execute_verse(products)
+        self.results[verse_result.agent_name.lower()] = verse_result
+
+        for result in [nexus_result, beacon_result, verse_result]:
             if result.status == 'success':
                 self.execution_metrics['agents_succeeded'] += 1
             else:
                 self.execution_metrics['agents_failed'] += 1
             self.execution_metrics['total_retries'] += result.retry_count
+
         self.execution_metrics['end_time'] = datetime.now().isoformat()
         start = datetime.fromisoformat(self.execution_metrics['start_time'])
         end = datetime.fromisoformat(self.execution_metrics['end_time'])
@@ -106,4 +120,31 @@ class MultiAgentOrchestrator:
             for content in verse_data:
                 content_metrics['tones'][content.tone] = content_metrics['tones'].get(content.tone, 0) + 1
         overall_status = 'SUCCESS' if self.execution_metrics['agents_failed'] == 0 else 'PARTIAL_SUCCESS' if self.execution_metrics['agents_succeeded'] > 0 else 'FAILED'
-        return {'session_id': self.session_id, 'execution_metrics': self.execution_metrics, 'beacon': {'status': beacon_result.status if beacon_result else 'unknown', 'execution_time': beacon_result.execution_time if beacon_result else 0.0, 'error': beacon_result.error if beacon_result and beacon_result.error else None}, 'nexus': {'status': nexus_result.status if nexus_result else 'unknown', 'execution_time': nexus_result.execution_time if nexus_result else 0.0, 'error': nexus_result.error if nexus_result and nexus_result.error else None}, 'verse': {'status': verse_result.status if verse_result else 'unknown', 'execution_time': verse_result.execution_time if verse_result else 0.0, 'error': verse_result.error if verse_result and verse_result.error else None}, 'summary': {'beacon_insights': beacon_insights, 'market_analysis': market_analysis, 'content_metrics': content_metrics, 'overall_status': overall_status}}
+        return {
+            'session_id': self.session_id,
+            'execution_metrics': self.execution_metrics,
+            'beacon': {
+                'status': beacon_result.status if beacon_result else 'unknown',
+                'execution_time': beacon_result.execution_time if beacon_result else 0.0,
+                'error': beacon_result.error if beacon_result and beacon_result.error else None,
+                'data': beacon_data,
+            },
+            'nexus': {
+                'status': nexus_result.status if nexus_result else 'unknown',
+                'execution_time': nexus_result.execution_time if nexus_result else 0.0,
+                'error': nexus_result.error if nexus_result and nexus_result.error else None,
+                'data': nexus_data,
+            },
+            'verse': {
+                'status': verse_result.status if verse_result else 'unknown',
+                'execution_time': verse_result.execution_time if verse_result else 0.0,
+                'error': verse_result.error if verse_result and verse_result.error else None,
+                'data': verse_data,
+            },
+            'summary': {
+                'beacon_insights': beacon_insights,
+                'market_analysis': market_analysis,
+                'content_metrics': content_metrics,
+                'overall_status': overall_status,
+            },
+        }

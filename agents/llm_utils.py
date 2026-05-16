@@ -1,7 +1,49 @@
+import time
+import threading
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
+
+# ── Global rate limiter for OpenRouter free tier (16 req/min) ──────────
+_rate_lock = threading.Lock()
+_last_call_time = 0.0
+_MIN_INTERVAL = 4.0  # seconds between LLM calls (~15/min, safely under 16)
+_DAILY_LIMIT_REACHED = False
+
+
+def _rate_limited_invoke(chain, inputs: dict, max_retries: int = 2) -> dict:
+    """Invoke an LLM chain with rate limiting and fail-fast for daily limits."""
+    global _last_call_time, _DAILY_LIMIT_REACHED
+    if _DAILY_LIMIT_REACHED:
+        raise RuntimeError("OpenRouter daily free limit reached. Using fallback logic.")
+
+    for attempt in range(max_retries + 1):
+        # Throttle: ensure minimum interval between any two LLM calls
+        with _rate_lock:
+            now = time.time()
+            wait = _MIN_INTERVAL - (now - _last_call_time)
+            if wait > 0:
+                time.sleep(wait)
+            _last_call_time = time.time()
+        try:
+            return chain.invoke(inputs)
+        except Exception as e:
+            err_str = str(e)
+            if 'free-models-per-day' in err_str or 'credits' in err_str.lower() or 'per day' in err_str.lower():
+                print("[RATE-LIMIT] OpenRouter daily free limit reached. Switching to instant fallback mode.")
+                _DAILY_LIMIT_REACHED = True
+                raise RuntimeError("OpenRouter daily free limit reached. Using fallback logic.")
+
+            is_rate_limit = '429' in err_str or 'rate limit' in err_str.lower()
+            if is_rate_limit and attempt < max_retries:
+                backoff = (2 ** attempt) * 3  # 3s, 6s
+                print(f'[RATE-LIMIT] 429 received (per-min), waiting {backoff}s before retry {attempt + 1}/{max_retries}')
+                time.sleep(backoff)
+                continue
+            raise
+
+
 
 class PricingRecommendation(BaseModel):
     product_id: str = Field(description='Product SKU')
@@ -30,13 +72,13 @@ class MarketingContentOutput(BaseModel):
     confidence_score: float = Field(description='Confidence 0-1')
 
 def create_llm_beacon(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.3, max_tokens=400, model_kwargs={"max_tokens": 400})
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.3, max_tokens=400)
 
 def create_llm_nexus(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.5, max_tokens=400, model_kwargs={"max_tokens": 400})
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.5, max_tokens=400)
 
 def create_llm_verse(openrouter_api_key: str, model: str) -> ChatOpenAI:
-    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.7, max_tokens=400, model_kwargs={"max_tokens": 400})
+    return ChatOpenAI(api_key=openrouter_api_key, base_url='https://openrouter.ai/api/v1', model=model, temperature=0.7, max_tokens=400)
 
 def get_beacon_prompt() -> PromptTemplate:
     return PromptTemplate.from_template('\nYou are a pricing analyst AI. Analyze the following product pricing data and recommend a pricing strategy.\n\nProduct Information:\n- Name: {product_name}\n- Current Price: ${current_price:.2f}\n- Category: {category}\n- Company: {company}\n- Features: {features}\n\nCompetitor Information:\n- Competitor Name: {competitor_name}\n- Competitor Price: ${competitor_price}\n- Price Difference: ${price_difference:.2f}\n\nBased on this data, provide a pricing recommendation. Return a JSON with:\n- recommendation: One of "REDUCE_PRICE", "INCREASE_PRICE", or "MAINTAIN_PRICE"\n- confidence_score: 0.0 to 1.0\n- reasoning: Explanation for the recommendation\n\nConsider:\n1. Price competitiveness\n2. Market positioning\n3. Value proposition\n4. Profit margins\n5. Market demand signals\n\nRespond ONLY with valid JSON.\n')

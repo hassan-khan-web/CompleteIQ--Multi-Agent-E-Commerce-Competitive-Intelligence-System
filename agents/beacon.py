@@ -2,7 +2,7 @@ import uuid
 from typing import List, Dict, Any
 from langfuse import Langfuse
 from .base_models import PriceAnalysis
-from .llm_utils import create_pricing_chain
+from .llm_utils import create_pricing_chain, _rate_limited_invoke
 
 class Beacon:
 
@@ -37,7 +37,7 @@ class Beacon:
                         competitor_name = p['company']
                         break
             llm_input = {'product_name': product_name, 'current_price': current_price, 'category': category, 'company': company, 'features': ', '.join(features[:5]) if features else 'N/A', 'competitor_name': competitor_name, 'competitor_price': competitor_price or 0, 'price_difference': price_difference}
-            llm_output = self.chain.invoke(llm_input)
+            llm_output = _rate_limited_invoke(self.chain, llm_input)
             recommendation = llm_output.get('recommendation', 'MAINTAIN_PRICE')
             confidence = llm_output.get('confidence_score', 0.5)
             reasoning = llm_output.get('reasoning', 'LLM analysis')

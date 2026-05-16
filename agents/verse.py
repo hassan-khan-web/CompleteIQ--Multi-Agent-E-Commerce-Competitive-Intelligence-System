@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from langfuse import Langfuse
 from .base_models import MarketingContent
-from .llm_utils import create_content_chain
+from .llm_utils import create_content_chain, _rate_limited_invoke
 
 class Verse:
 
@@ -49,7 +49,7 @@ class Verse:
                 tone = 'professional'
                 target_audience = 'value-focused consumers'
             llm_input = {'product_name': product_name, 'category': category, 'price': price, 'features': ', '.join(features[:5]) if features else 'quality product', 'company': company, 'competitor_name': competitor_name, 'competitor_price': competitor_price, 'advantages': ', '.join(advantages[:3]) if advantages else 'premium features', 'target_audience': target_audience}
-            llm_output = self.chain.invoke(llm_input)
+            llm_output = _rate_limited_invoke(self.chain, llm_input)
             headline = llm_output.get('headline', f'{product_name}: Premium Choice')
             description = llm_output.get('description', f'Discover {product_name} - innovation meets quality.')
             key_points = llm_output.get('key_selling_points', features[:4])
