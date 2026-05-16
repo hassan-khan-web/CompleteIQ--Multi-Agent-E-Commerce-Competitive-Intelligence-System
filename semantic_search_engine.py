@@ -101,26 +101,28 @@ class SemanticSearchEngine:
         trace.output = {'total_products_embedded': final_count, 'batches_processed': total_batches}
         print(f'[INFO] Embedding complete. Total products in store: {final_count}')
 
-    def semantic_search(self, query: str, k: int=5) -> List[Dict[str, Any]]:
+    def semantic_search(self, query: str, k: int=5, threshold: float=0.40) -> List[Dict[str, Any]]:
         trace = langfuse.trace(name='semantic_search', session_id=SESSION_ID)
-        trace.input = {'query': query, 'k': k}
-        print(f"[INFO] Semantic search: '{query}' (top {k})")
+        trace.input = {'query': query, 'k': k, 'threshold': threshold}
+        print(f"[INFO] Semantic search: '{query}' (top {k}, threshold {threshold})")
         query_embedding = self._generate_embeddings_batch([query])[0]
         results = self.collection.query(query_embeddings=[query_embedding], n_results=k, include=['embeddings', 'metadatas', 'documents', 'distances'])
         formatted_results = []
         for i in range(len(results['ids'][0])):
-            result = {'id': results['ids'][0][i], 'product_name': results['metadatas'][0][i].get('product_name', ''), 'company': results['metadatas'][0][i].get('company', ''), 'category': results['metadatas'][0][i].get('category', ''), 'price': float(results['metadatas'][0][i].get('price', 0)), 'effective_price': float(results['metadatas'][0][i].get('effective_price', 0)), 'document': results['documents'][0][i], 'similarity_score': 1 - results['distances'][0][i]}
-            formatted_results.append(result)
+            sim_score = 1 - results['distances'][0][i]
+            if sim_score >= threshold:
+                result = {'id': results['ids'][0][i], 'product_name': results['metadatas'][0][i].get('product_name', ''), 'company': results['metadatas'][0][i].get('company', ''), 'category': results['metadatas'][0][i].get('category', ''), 'price': float(results['metadatas'][0][i].get('price', 0)), 'effective_price': float(results['metadatas'][0][i].get('effective_price', 0)), 'document': results['documents'][0][i], 'similarity_score': sim_score}
+                formatted_results.append(result)
         trace.output = {'results_count': len(formatted_results), 'top_result': formatted_results[0]['product_name'] if formatted_results else None, 'top_similarity': formatted_results[0]['similarity_score'] if formatted_results else None}
-        print(f'[INFO] Found {len(formatted_results)} results')
+        print(f'[INFO] Found {len(formatted_results)} results above threshold {threshold}')
         if formatted_results:
             print(f"  Top result: {formatted_results[0]['product_name']} ({formatted_results[0]['similarity_score']:.3f})")
         return formatted_results
 
-    def search_with_filters(self, query: str, company: Optional[str]=None, category: Optional[str]=None, k: int=5) -> List[Dict[str, Any]]:
+    def search_with_filters(self, query: str, company: Optional[str]=None, category: Optional[str]=None, k: int=5, threshold: float=0.40) -> List[Dict[str, Any]]:
         trace = langfuse.trace(name='search_with_filters', session_id=SESSION_ID)
-        trace.input = {'query': query, 'company': company, 'category': category, 'k': k}
-        print(f"[INFO] Filtered search: '{query}'")
+        trace.input = {'query': query, 'company': company, 'category': category, 'k': k, 'threshold': threshold}
+        print(f"[INFO] Filtered search: '{query}' (threshold {threshold})")
         if company:
             print(f'  Filter by company: {company}')
         if category:
@@ -140,10 +142,12 @@ class SemanticSearchEngine:
         results = self.collection.query(query_embeddings=[query_embedding], n_results=k, where=where, include=['embeddings', 'metadatas', 'documents', 'distances'])
         formatted_results = []
         for i in range(len(results['ids'][0])):
-            result = {'id': results['ids'][0][i], 'product_name': results['metadatas'][0][i].get('product_name', ''), 'company': results['metadatas'][0][i].get('company', ''), 'category': results['metadatas'][0][i].get('category', ''), 'price': float(results['metadatas'][0][i].get('price', 0)), 'effective_price': float(results['metadatas'][0][i].get('effective_price', 0)), 'document': results['documents'][0][i], 'similarity_score': 1 - results['distances'][0][i]}
-            formatted_results.append(result)
+            sim_score = 1 - results['distances'][0][i]
+            if sim_score >= threshold:
+                result = {'id': results['ids'][0][i], 'product_name': results['metadatas'][0][i].get('product_name', ''), 'company': results['metadatas'][0][i].get('company', ''), 'category': results['metadatas'][0][i].get('category', ''), 'price': float(results['metadatas'][0][i].get('price', 0)), 'effective_price': float(results['metadatas'][0][i].get('effective_price', 0)), 'document': results['documents'][0][i], 'similarity_score': sim_score}
+                formatted_results.append(result)
         trace.output = {'results_count': len(formatted_results), 'filters_applied': {'company': company, 'category': category}}
-        print(f'[INFO] Found {len(formatted_results)} results (with filters)')
+        print(f'[INFO] Found {len(formatted_results)} results (with filters above threshold {threshold})')
         return formatted_results
 
     def get_product_by_id(self, product_id: str) -> Optional[Dict[str, Any]]:
